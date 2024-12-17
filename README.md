@@ -1,6 +1,9 @@
 # OpenMPDemos
 
-A series of demos using OpenMP.  
+A series of demos using OpenMP.  To learn OpenMP better, I am working through the
+[official examples](https://www.openmp.org/wp-content/uploads/openmp-examples-6.0.pdf)
+adding a little meat here and there.  As a grumpy old C programmer, I am only doing the
+C versions.
 
 ## Links
 
