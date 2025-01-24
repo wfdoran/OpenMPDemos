@@ -1,5 +1,6 @@
 /* 4.1.1  Spread Affinity Policy
    4.1.2  Close Affinity Policy
+   4.1.3  Primary Affinity Policy
 
 
    % setenv OMP_PLACES "{0:2}:8:2"
@@ -14,8 +15,18 @@
    2 4
    1 2
    3 6
+   ================
+   1 1
+   3 0
+   2 0
+   0 1
 
-   Notice distribution of cpus/cores with spread vs close.
+   Notice distribution of cpus.
+     spread: distributed far apart
+     close: near, but on different physical cores
+     primary: in order
+
+   
 */
 
 #define _GNU_SOURCE
@@ -43,6 +54,13 @@ int main(void) {
   printf("================\n");
 
 #pragma omp parallel proc_bind(close) num_threads(num_threads)
+  {
+    whoami();
+  }
+
+  printf("================\n");
+
+#pragma omp parallel proc_bind(primary) num_threads(num_threads)
   {
     whoami();
   }
