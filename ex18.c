@@ -73,36 +73,34 @@ int node_count(node_t *n) {
 }
 
 int *thread_dist;
+int omp_count;
 
-int node_count_omp(node_t *n) {
+void node_count_omp(node_t *n) {
   int my_thread = omp_get_thread_num();
 
 #pragma omp atomic
   thread_dist[my_thread] += 1;
+
+#pragma omp atomic
+  omp_count++;
   
-  int left_count = 0;
-  int right_count = 0;
-
-#pragma omp parallel
+#pragma omp task
   {
-#pragma omp task
-    {
-      if (n->left) {
-        left_count = node_count_omp(n->left);
-      }
-    }
-
-#pragma omp task
-    {
-      if (n->right) {
-        right_count = node_count_omp(n->right);
-      }
+    if (n->left) {
+      node_count_omp(n->left);
     }
   }
-  
+
+#pragma omp task
+  {
+    if (n->right) {
+      node_count_omp(n->right);
+    }
+  }
+
   struct timespec req = {0, 10000000};
   nanosleep(&req, NULL);
-  return 1 + left_count + right_count;
+  return;
 }
 
 int main(void) {
@@ -147,13 +145,19 @@ int main(void) {
     clock_t start_clock = clock();
     struct timespec start_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
-    int count = node_count_omp(root);
+
+    omp_count = 0;
+#pragma omp parallel
+#pragma omp single
+    node_count_omp(root);
+#pragma omp taskwait
+    
     clock_t end_clock = clock();
     struct timespec end_time;
     clock_gettime(CLOCK_MONOTONIC, &end_time);
     
     
-    printf("node_count = %d\n", count);
+    printf("node_count = %d\n", omp_count);
     
     double proc_time = ((double) (end_clock - start_clock)) / CLOCKS_PER_SEC;
     double wall_time =
